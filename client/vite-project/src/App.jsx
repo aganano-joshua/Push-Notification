@@ -148,126 +148,6 @@
 
 // export default App;
 
-import React, { useEffect, useState } from 'react';
-import io from 'socket.io-client';
-
-const SOCKET_SERVER_URL = 'https://david-node-server.onrender.com'; // Replace with your server URL
-
-const App = () => {
-  const [socket, setSocket] = useState(null);
-  const [email, setEmail] = useState('');
-  const [message, setMessage] = useState('');
-  const [activeUsers, setActiveUsers] = useState([]);
-  const [selectedUser, setSelectedUser] = useState('');
-
-  useEffect(() => {
-    const socketConnection = io(SOCKET_SERVER_URL);
-    setSocket(socketConnection);
-
-    // Listener for push notifications
-    socketConnection.on('pushNotification', (data) => {
-      console.log('Received notification:', data.message);
-    });
-
-    // Listener for chat messages
-    socketConnection.on('chatIndividual', (data) => {
-      console.log('Received chat:', data.message);
-    });
-
-    return () => {
-      socketConnection.disconnect(); // Cleanup on component unmount
-    };
-  }, []);
-
-  useEffect(() => {
-    const fetchActiveUsers = async () => {
-      try {
-        const response = await fetch(`${SOCKET_SERVER_URL}/active-users`);
-        const users = await response.json();
-  
-        // Ensure users is an array before setting state
-        if (Array.isArray(users)) {
-          setActiveUsers(users);
-        } else {
-          console.error('Invalid data format:', users);
-          setActiveUsers([]);
-        }
-      } catch (error) {
-        console.error('Error fetching active users:', error);
-        setActiveUsers([]); // Fallback to empty array
-      }
-    };
-  
-    fetchActiveUsers();
-  }, []);
-  
-
-  const handleRegister = () => {
-    if (socket && email) {
-      socket.emit('register', email);
-      console.log(`Registered with email: ${email}`);
-    } else {
-      console.log('Socket or email not initialized');
-    }
-  };
-
-  const handleSendMessage = async () => {
-    if (message) {
-      try {
-        const response = await fetch(`${SOCKET_SERVER_URL}/chat/user`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ userId: 'areegbedavid@gmail.com', message, senderId: email }),
-        });
-        const result = await response.json();
-        console.log(result.message);
-      } catch (error) {
-        console.error('Error sending message:', error);
-      }
-    } else {
-      console.log('Message or selected user cannot be empty');
-    }
-  };
-
-  return (
-    <div>
-      <h1>Welcome to the Notification System</h1>
-      <div>
-        <input
-          type="email"
-          placeholder="Enter your email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <button onClick={handleRegister}>Register</button>
-      </div>
-      <div>
-        <h3>Active Users</h3>
-        <select onChange={(e) => setSelectedUser(e.target.value)} value={selectedUser}>
-          <option value="">Select a user</option>
-          {activeUsers.map((user, index) => (
-            <option key={index} value={user}>
-              {user}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <textarea
-          placeholder="Type your message here"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-        />
-        <button onClick={handleSendMessage}>Send Message</button>
-      </div>
-    </div>
-  );
-};
-
-export default App;
-
 // import React, { useEffect, useState } from 'react';
 // import io from 'socket.io-client';
 
@@ -279,7 +159,6 @@ export default App;
 //   const [message, setMessage] = useState('');
 //   const [activeUsers, setActiveUsers] = useState([]);
 //   const [selectedUser, setSelectedUser] = useState('');
-//   const [media, setMedia] = useState(null); // State for media file
 
 //   useEffect(() => {
 //     const socketConnection = io(SOCKET_SERVER_URL);
@@ -305,7 +184,7 @@ export default App;
 //       try {
 //         const response = await fetch(`${SOCKET_SERVER_URL}/active-users`);
 //         const users = await response.json();
-
+  
 //         // Ensure users is an array before setting state
 //         if (Array.isArray(users)) {
 //           setActiveUsers(users);
@@ -318,9 +197,10 @@ export default App;
 //         setActiveUsers([]); // Fallback to empty array
 //       }
 //     };
-
+  
 //     fetchActiveUsers();
 //   }, []);
+  
 
 //   const handleRegister = () => {
 //     if (socket && email) {
@@ -332,34 +212,23 @@ export default App;
 //   };
 
 //   const handleSendMessage = async () => {
-//     if (!message && !media) {
-//       console.log('Message or media must be provided.');
-//       return;
+//     if (message) {
+//       try {
+//         const response = await fetch(`${SOCKET_SERVER_URL}/chat/user`, {
+//           method: 'POST',
+//           headers: {
+//             'Content-Type': 'application/json',
+//           },
+//           body: JSON.stringify({ userId: 'areegbedavid@gmail.com', message, senderId: email }),
+//         });
+//         const result = await response.json();
+//         console.log(result.message);
+//       } catch (error) {
+//         console.error('Error sending message:', error);
+//       }
+//     } else {
+//       console.log('Message or selected user cannot be empty');
 //     }
-
-//     const formData = new FormData();
-//     formData.append('userId', 'jaytechco04@gmail.com'); // Receiver's email
-//     formData.append('message', message); // Message content
-//     formData.append('senderId', email); // Sender's email
-//     if (media) {
-//       formData.append('media', media); // Media file
-//     }
-
-//     try {
-//       const response = await fetch(`${SOCKET_SERVER_URL}/chat/user`, {
-//         method: 'POST',
-//         body: formData,
-//       });
-
-//       const result = await response.json();
-//       console.log(result.message);
-//     } catch (error) {
-//       console.error('Error sending message:', error);
-//     }
-//   };
-
-//   const handleFileChange = (e) => {
-//     setMedia(e.target.files[0]); // Set the selected file
 //   };
 
 //   return (
@@ -391,11 +260,6 @@ export default App;
 //           value={message}
 //           onChange={(e) => setMessage(e.target.value)}
 //         />
-//       </div>
-//       <div>
-//         <input type="file" accept="image/*,video/*" onChange={handleFileChange} />
-//       </div>
-//       <div>
 //         <button onClick={handleSendMessage}>Send Message</button>
 //       </div>
 //     </div>
@@ -403,3 +267,139 @@ export default App;
 // };
 
 // export default App;
+
+import React, { useEffect, useState } from 'react';
+import io from 'socket.io-client';
+
+const SOCKET_SERVER_URL = 'https://david-node-server.onrender.com'; // Replace with your server URL
+
+const App = () => {
+  const [socket, setSocket] = useState(null);
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+  const [activeUsers, setActiveUsers] = useState([]);
+  const [selectedUser, setSelectedUser] = useState('');
+  const [media, setMedia] = useState(null); // State for media file
+
+  useEffect(() => {
+    const socketConnection = io(SOCKET_SERVER_URL);
+    setSocket(socketConnection);
+
+    // Listener for push notifications
+    socketConnection.on('pushNotification', (data) => {
+      console.log('Received notification:', data.message);
+    });
+
+    // Listener for chat messages
+    socketConnection.on('chatIndividual', (data) => {
+      console.log('Received chat:', data.message);
+    });
+
+    return () => {
+      socketConnection.disconnect(); // Cleanup on component unmount
+    };
+  }, []);
+
+  useEffect(() => {
+    const fetchActiveUsers = async () => {
+      try {
+        const response = await fetch(`${SOCKET_SERVER_URL}/active-users`);
+        const users = await response.json();
+
+        // Ensure users is an array before setting state
+        if (Array.isArray(users)) {
+          setActiveUsers(users);
+        } else {
+          console.error('Invalid data format:', users);
+          setActiveUsers([]);
+        }
+      } catch (error) {
+        console.error('Error fetching active users:', error);
+        setActiveUsers([]); // Fallback to empty array
+      }
+    };
+
+    fetchActiveUsers();
+  }, []);
+
+  const handleRegister = () => {
+    if (socket && email) {
+      socket.emit('register', email);
+      console.log(`Registered with email: ${email}`);
+    } else {
+      console.log('Socket or email not initialized');
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!message && !media) {
+      console.log('Message or media must be provided.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('userId', 'areegbedavid@gmail.com'); // Receiver's email
+    formData.append('message', message); // Message content
+    formData.append('senderId', email); // Sender's email
+    if (media) {
+      formData.append('media', media); // Media file
+    }
+
+    try {
+      const response = await fetch(`${SOCKET_SERVER_URL}/chat/user`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+      console.log(result.message);
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
+  };
+
+  const handleFileChange = (e) => {
+    setMedia(e.target.files[0]); // Set the selected file
+  };
+
+  return (
+    <div>
+      <h1>Welcome to the Notification System</h1>
+      <div>
+        <input
+          type="email"
+          placeholder="Enter your email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <button onClick={handleRegister}>Register</button>
+      </div>
+      <div>
+        <h3>Active Users</h3>
+        <select onChange={(e) => setSelectedUser(e.target.value)} value={selectedUser}>
+          <option value="">Select a user</option>
+          {activeUsers.map((user, index) => (
+            <option key={index} value={user}>
+              {user}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <textarea
+          placeholder="Type your message here"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+        />
+      </div>
+      <div>
+        <input type="file" accept="image/*,video/*" onChange={handleFileChange} />
+      </div>
+      <div>
+        <button onClick={handleSendMessage}>Send Message</button>
+      </div>
+    </div>
+  );
+};
+
+export default App;
